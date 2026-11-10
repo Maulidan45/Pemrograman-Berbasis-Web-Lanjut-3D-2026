@@ -66,7 +66,7 @@
                             <td>{{ $item->tahun_terbit }}</td>
                             <td>{{ $item->peminjamans_count }}x</td>
                             <td class="aksi">
-                                @can('kelola data buku')
+                                @can('kelola-buku')
                                     <a class="btn-edit" href="{{ route('buku.edit', $item) }}">
                                         Ubah
                                     </a>
@@ -99,7 +99,7 @@
             {{ $buku->links() }}
         </div>
 
-        @can('kelola data buku')
+        @can('kelola-buku')
             <section class="book-section">
                 <h3>Tambah Buku</h3>
 

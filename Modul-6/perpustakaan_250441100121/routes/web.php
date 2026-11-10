@@ -32,6 +32,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:lihat daftar buku')
         ->name('buku.index');
 
+    // Form tambah buku dibatasi Gate kelola-buku.
+    Route::get('/buku/create', [BukuController::class, 'index'])
+        ->middleware('can:kelola-buku')
+        ->name('buku.create');
+
     Route::get('/buku/{buku}', [BukuController::class, 'show'])
         ->middleware('permission:lihat daftar buku')
         ->name('buku.show');
@@ -41,7 +46,7 @@ Route::middleware('auth')->group(function () {
         ->name('buku.cari');
 
     // Pengelolaan buku
-    Route::middleware('permission:kelola data buku')->group(function () {
+    Route::middleware('can:kelola-buku')->group(function () {
 
         Route::post('/buku', [BukuController::class, 'store'])
             ->name('buku.store');

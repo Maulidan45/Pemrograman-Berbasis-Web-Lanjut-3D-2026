@@ -164,7 +164,12 @@ class RbacPerpustakaanTest extends TestCase
         $siswa = $this->user('siswa');
         $buku = $this->buku();
 
-        $this->actingAs($siswa)->get('/buku')->assertOk();
+        $this->actingAs($siswa)
+            ->get('/buku')
+            ->assertOk()
+            ->assertDontSee('Tambah Buku')
+            ->assertDontSee('Ubah')
+            ->assertDontSee('Hapus');
         $this->actingAs($siswa)->get("/buku/{$buku->id}")->assertOk();
     }
 
@@ -172,6 +177,8 @@ class RbacPerpustakaanTest extends TestCase
     {
         $admin = $this->user('admin');
         $buku = $this->buku();
+
+        $this->actingAs($admin)->get('/buku/create')->assertOk();
 
         $this->actingAs($admin)
             ->post('/buku', [
@@ -244,6 +251,8 @@ class RbacPerpustakaanTest extends TestCase
     {
         $petugas = $this->user('petugas');
         $buku = $this->buku();
+
+        $this->actingAs($petugas)->get('/buku/create')->assertOk();
 
         $this->actingAs($petugas)
             ->post('/buku', [
@@ -321,6 +330,8 @@ class RbacPerpustakaanTest extends TestCase
         $buku = $this->buku();
 
         // Tidak boleh mengelola (tambah/ubah/hapus) buku.
+        $this->actingAs($siswa)->get('/buku/create')->assertForbidden();
+
         $this->actingAs($siswa)
             ->post('/buku', [
                 'kategori_id' => $buku->kategori_id,
