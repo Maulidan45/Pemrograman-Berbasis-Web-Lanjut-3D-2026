@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Buku;
 use App\Models\Peminjaman;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 
 class PeminjamanController extends Controller
@@ -57,12 +58,14 @@ class PeminjamanController extends Controller
     }
 
     /**
-     * Pengujian IDOR (A4) - SENGAJA RENTAN.
+     * Tampilkan detail peminjaman jika diizinkan oleh policy.
      */
-    public function show($id)
+    public function show(string $id)
     {
         $peminjaman = Peminjaman::with(['user', 'buku', 'anggota'])
             ->findOrFail($id);
+
+        Gate::authorize('view', $peminjaman);
 
         return view('peminjaman.show', compact('peminjaman'));
     }

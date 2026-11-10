@@ -366,6 +366,21 @@ class RbacPerpustakaanTest extends TestCase
             ->assertOk();
     }
 
+    public function test_admin_dan_petugas_dapat_melihat_peminjaman_milik_pengguna_lain(): void
+    {
+        $pemilik = $this->user('siswa');
+        $buku = $this->buku();
+        $peminjaman = $this->peminjaman($pemilik, $buku);
+
+        $this->actingAs($this->user('admin'))
+            ->get("/peminjaman/{$peminjaman->id}")
+            ->assertOk();
+
+        $this->actingAs($this->user('petugas'))
+            ->get("/peminjaman/{$peminjaman->id}")
+            ->assertOk();
+    }
+
     public function test_setelah_logout_harus_login_kembali(): void
     {
         $user = $this->user('admin');
