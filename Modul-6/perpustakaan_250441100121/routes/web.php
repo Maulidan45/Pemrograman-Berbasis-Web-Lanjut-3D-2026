@@ -36,15 +36,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:lihat daftar buku')
         ->name('buku.show');
 
-    // A1: Pengujian XSS dilakukan melalui tampilan Blade.
-    
-    // A2: Pengujian SQL Injection
-    Route::get('/buku-cari', [BukuController::class, 'cariRaw'])
-        ->name('buku.cari.raw');
-
-    // A3: Pengujian CSRF - SENGAJA RENTAN
-    Route::get('/buku/{buku}/hapus', [BukuController::class, 'destroy'])
-        ->name('buku.hapus.csrf');
+    // Pencarian buku.
+    Route::get('/buku-cari', [BukuController::class, 'cari'])
+        ->name('buku.cari');
 
     // Pengelolaan buku
     Route::middleware('permission:kelola data buku')->group(function () {

@@ -59,7 +59,7 @@
                             <td>{{ $item->kategoriRelasi?->nama ?? '-' }}</td>
                             <td>
                                 <a href="{{ route('buku.show', $item) }}">
-                                    {!! $item->judul !!}
+                                    {{ $item->judul }}
                                 </a>
                             </td>
                             <td>{{ $item->penulis }}</td>

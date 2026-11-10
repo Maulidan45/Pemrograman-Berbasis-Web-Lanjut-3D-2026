@@ -73,13 +73,14 @@ class BukuController extends Controller
             ->with('status', 'Buku berhasil dihapus.');
     }
 
-    // Pengujian SQL Injection (A2)
-    public function cariRaw(Request $request)
+    // Pencarian menggunakan parameter binding agar input tidak dieksekusi sebagai SQL.
+    public function cari(Request $request)
     {
         $judul = $request->query('judul');
 
         $hasil = DB::select(
-            "SELECT * FROM bukus WHERE judul = '$judul'"
+            'SELECT * FROM bukus WHERE judul = ?',
+            [$judul]
         );
 
         return response()->json($hasil);
