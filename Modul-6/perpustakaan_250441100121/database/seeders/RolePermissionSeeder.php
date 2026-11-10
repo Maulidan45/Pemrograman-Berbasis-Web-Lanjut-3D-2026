@@ -12,11 +12,6 @@ use Spatie\Permission\PermissionRegistrar;
 class RolePermissionSeeder extends Seeder
 {
     /**
-     * Password untuk semua akun demo.
-     */
-    public const PASSWORD = 'opojarekowe';
-
-    /**
      * Nama permission sesuai tabel Modul V.
      */
     public const PERMISSIONS = [
@@ -97,37 +92,57 @@ class RolePermissionSeeder extends Seeder
             $role->syncPermissions($permissions);
         }
 
+        $passwordAdminAwal = config('app.admin_initial_password');
+
+        if (blank($passwordAdminAwal) && ! User::where('email', 'ikiadmin@gmail.com')->exists()) {
+            throw new \RuntimeException('ADMIN_INITIAL_PASSWORD wajib diatur sebelum membuat akun admin awal.');
+        }
+
         $akun = [
             [
                 'name' => 'Admin Perpustakaan',
                 'email' => 'ikiadmin@gmail.com',
                 'no_telepon' => '081200000001',
                 'role' => 'admin',
+                'password' => $passwordAdminAwal,
             ],
             [
                 'name' => 'Petugas Perpustakaan',
                 'email' => 'ikipetugas@gmail.com',
                 'no_telepon' => '081200000002',
                 'role' => 'petugas',
+                'password' => 'opojarekowe',
             ],
             [
                 'name' => 'Siswa Perpustakaan',
                 'email' => 'akuseto@gmail.com',
                 'no_telepon' => '081200000003',
                 'role' => 'siswa',
+                'password' => 'opojarekowe',
             ],
         ];
 
         foreach ($akun as $data) {
-            $user = User::updateOrCreate(
-                ['email' => $data['email']],
-                [
-                    'name' => $data['name'],
-                    'no_telepon' => $data['no_telepon'],
-                    'password' => Hash::make(self::PASSWORD),
-                    'email_verified_at' => now(),
-                ]
-            );
+            $user = User::firstOrNew(['email' => $data['email']]);
+            $isNewUser = ! $user->exists;
+
+            $user->fill([
+                'name' => $data['name'],
+                'no_telepon' => $data['no_telepon'],
+                'email_verified_at' => now(),
+            ]);
+
+            if ($isNewUser) {
+                $password = $data['password'];
+
+                if ($data['role'] === 'admin' && blank($password)) {
+                    throw new \RuntimeException('ADMIN_INITIAL_PASSWORD wajib diatur saat membuat akun admin awal.');
+                }
+
+                $user->password = Hash::make($password);
+            }
+
+            $user->save();
 
             $user->syncRoles([$data['role']]);
         }

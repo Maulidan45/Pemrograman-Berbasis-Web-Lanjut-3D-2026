@@ -10,6 +10,7 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class RbacPerpustakaanTest extends TestCase
@@ -77,6 +78,54 @@ class RbacPerpustakaanTest extends TestCase
         $this->assertNotNull($user);
         $this->assertNotSame('password123', $user->password);
         $this->assertTrue(Hash::check('password123', $user->password));
+    }
+
+    public function test_debug_dinonaktifkan_dan_error_tidak_membocorkan_stack_trace(): void
+    {
+        $this->assertFalse((bool) config('app.debug'));
+
+        Route::get('/__test/debug-error', function () {
+            throw new \RuntimeException('Sensitive stack trace marker');
+        });
+
+        $this->get('/__test/debug-error')
+            ->assertServerError()
+            ->assertDontSee('Sensitive stack trace marker')
+            ->assertDontSee('RuntimeException');
+    }
+
+    public function test_file_env_tidak_dapat_diakses_melalui_http(): void
+    {
+        $response = $this->get('/.env');
+
+        $this->assertContains($response->status(), [403, 404]);
+        $response->assertDontSee('APP_KEY');
+        $response->assertDontSee('DB_PASSWORD');
+    }
+
+    public function test_seeder_menolak_membuat_admin_tanpa_password_awal_dikonfigurasi(): void
+    {
+        config(['app.admin_initial_password' => null]);
+        User::query()->delete();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('ADMIN_INITIAL_PASSWORD');
+
+        $this->seed(RolePermissionSeeder::class);
+    }
+
+    public function test_password_admin_lama_tidak_berlaku_dan_seeder_tidak_mereset_password(): void
+    {
+        $admin = $this->user('admin');
+        $passwordBaru = 'PasswordBaru-Uji-250441100121!';
+        $admin->forceFill(['password' => Hash::make($passwordBaru)])->save();
+
+        $this->assertFalse(Hash::check('opojarekowe', $admin->fresh()->password));
+        $this->assertTrue(Hash::check($passwordBaru, $admin->fresh()->password));
+
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->assertTrue(Hash::check($passwordBaru, $admin->fresh()->password));
     }
 
     public function test_registrasi_tidak_dapat_memilih_role(): void
